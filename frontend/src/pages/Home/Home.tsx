@@ -9,6 +9,7 @@ import {
   DescriptionList,
 } from './Home.style';
 import logo from 'assets/logo.png';
+import { Link } from 'react-router-dom';
 
 const Home: React.FunctionComponent = () => (
   <HomeContainer>
@@ -32,6 +33,7 @@ const Home: React.FunctionComponent = () => (
         </DescriptionLine>
       </DescriptionList>
     </HowTo>
+    <Link to="/avatar">See Avatar page</Link>
   </HomeContainer>
 );
 
