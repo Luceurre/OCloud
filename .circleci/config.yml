@@ -141,6 +141,7 @@ commands:
       - run:
           name: "Check for conflicts and merge main branch"
           command: |
+            export GIT_MERGE_AUTOEDIT=no
             git config user.email "circleci@circleci"
             git config user.name "CircleCI"
             git merge << parameters.base_branch >> --no-ff
