@@ -64,3 +64,7 @@ export const Code = styled.code`
   padding: ${getSpacing(1)};
 `;
 Code.displayName = 'Code';
+
+export const AvatarLink = styled.div`
+  margin: ${getSpacing(5)};
+`;
