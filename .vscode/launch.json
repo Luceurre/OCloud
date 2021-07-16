@@ -1,0 +1,28 @@
+// Use IntelliSense to learn about possible attributes.
+// Hover to view descriptions of existing attributes.
+// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Attach (Remote Debug)",
+      "type": "python",
+      "request": "attach",
+      "django": true,
+      "port": 9000,
+      "redirectOutput": true,
+      "pathMappings": [
+        {
+          "localRoot": "${workspaceFolder}/backend",
+          "remoteRoot": "/code"
+        },
+        {
+          "localRoot": "${workspaceFolder}/.venv/lib/python3.9/site-packages/",
+          "remoteRoot": "/usr/local/lib/python3.9/site-packages/"
+        }
+      ],
+      "justMyCode": false,
+      "host": "127.0.0.1"
+    }
+  ]
+}

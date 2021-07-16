@@ -1,0 +1,1 @@
+{"project_name":"OCloud","generateAPIPlatform":false,"generateDjango":true,"generateReact":true,"generateEB":false,"generateReactNative":false,"app_port":"8000","cleanProjectName":"ocloud","refresh_token":"refreshToken","access_token_minutes_to_live":10,"refresh_token_minutes_to_live":525600,"django":{"docsVersion":"3.0","subnet":72,"logFile":"django.log","staticUrl":"/static/"}}

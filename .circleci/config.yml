@@ -1,0 +1,442 @@
+version: 2.1
+
+parameters:
+  enable_sentry:
+    type: boolean
+    default: false
+
+orbs:
+  aws-cli: circleci/aws-cli@2.0.0
+  aws-ecr: circleci/aws-ecr@6.15
+  aws-eb: circleci/aws-elastic-beanstalk@1.0.2
+  skip: theodo/skip@0.0.4
+  sentry:
+    commands:
+      install:
+        parameters:
+          enable_sentry:
+            type: boolean
+            default: true
+        steps:
+          - when:
+              condition: << parameters.enable_sentry >>
+              steps:
+                - run:
+                    name: Install Sentry
+                    command: |
+                      curl -sL https://sentry.io/get-cli/ | bash
+                      sentry-cli --help
+
+      parse_version:
+        parameters:
+          enable_sentry:
+            type: boolean
+            default: true
+          version:
+            type: string
+            default: ''
+          version_raw:
+            type: string
+            default: ''
+        steps:
+          - when:
+              condition: << parameters.enable_sentry >>
+              steps:
+                - when:
+                    condition: << parameters.version >>
+                    steps:
+                      - run:
+                          command: export VERSION=${<< parameters.version >>}
+                - when:
+                    condition: << parameters.version_raw >>
+                    steps:
+                      - run:
+                          command: export VERSION=<< parameters.version_raw >>
+
+      start_build:
+        parameters:
+          enable_sentry:
+            type: boolean
+            default: true
+          version:
+            type: string
+            default: ''
+          version_raw:
+            type: string
+            default: ''
+        steps:
+          - when:
+              condition: << parameters.enable_sentry >>
+              steps:
+                - parse_version:
+                    version: << parameters.version >>
+                    version_raw: << parameters.version_raw >>
+                - run:
+                    name: "Sentry: start build"
+                    command: |
+                      sentry-cli releases new $VERSION
+                      sentry-cli releases set-commits $VERSION --auto
+
+      finish_build:
+        parameters:
+          enable_sentry:
+            type: boolean
+            default: true
+          version:
+            type: string
+            default: ''
+          version_raw:
+            type: string
+            default: ''
+        steps:
+          - when:
+              condition: << parameters.enable_sentry >>
+              steps:
+                - parse_version:
+                    version: << parameters.version >>
+                    version_raw: << parameters.version_raw >>
+                - run:
+                    name: "Sentry: finish build"
+                    command: |
+                      sentry-cli releases finalize $VERSION
+
+      deploy:
+        parameters:
+          enable_sentry:
+            type: boolean
+            default: true
+          version:
+            type: string
+            default: ''
+          version_raw:
+            type: string
+            default: ''
+          environment:
+            type: string
+        steps:
+          - when:
+              condition: << parameters.enable_sentry >>
+              steps:
+                - parse_version:
+                    version: << parameters.version >>
+                    version_raw: << parameters.version_raw >>
+                - run:
+                    name: "Sentry: deploy"
+                    command: |
+                      sentry-cli releases deploys $VERSION< new -e << parameters.environment >>
+
+executors:
+  defaults_typescript:
+    docker:
+      - image: circleci/node:12.13
+
+commands:
+  checkout_merge:
+    parameters:
+      base_branch:
+        type: string
+        default: origin/main
+    steps:
+      - checkout
+      - run:
+          name: "Check for conflicts and merge main branch"
+          command: |
+            git config user.email "circleci@circleci"
+            git config user.name "CircleCI"
+            git merge << parameters.base_branch >> --no-ff
+
+  yarn-install:
+    parameters:
+      workspace:
+        type: string
+    steps:
+      - checkout_merge
+      - skip/skip_unchanged:
+          paths: << parameters.workspace >>
+          git_base_branch: origin/main
+      - attach_workspace:
+          at: ~/OCloud/<< parameters.workspace >>
+      - restore_cache:
+          key: node-modules-cache-{{ checksum "<< parameters.workspace >>/yarn.lock" }}
+      - run:
+          working_directory: << parameters.workspace >>
+          name: Install front dependencies
+          command: yarn
+      - save_cache:
+          key: node-modules-cache-{{ checksum "<< parameters.workspace >>/yarn.lock" }}
+          paths:
+            - << parameters.workspace >>/node_modules
+      - persist_to_workspace:
+          root: ~/OCloud/<< parameters.workspace >>
+          paths:
+            - node_modules
+            - .env
+
+  yarn-tests:
+    parameters:
+      workspace:
+        type: string
+    steps:
+      - checkout_merge
+      - skip/skip_unchanged:
+          paths: << parameters.workspace >>
+          git_base_branch: origin/main
+      - attach_workspace:
+          at: ~/OCloud/<< parameters.workspace >>
+      - run:
+          working_directory: << parameters.workspace >>
+          name: Unit test with coverage
+          command: yarn test:coverage
+      - store_artifacts:
+          path: << parameters.workspace >>/coverage
+      - run:
+          working_directory: << parameters.workspace >>
+          name: Run Typescript checker
+          command: yarn tsc
+
+  yarn-linter:
+    parameters:
+      workspace:
+        type: string
+    steps:
+      - checkout_merge
+      - skip/skip_unchanged:
+          paths: << parameters.workspace >>
+          git_base_branch: origin/main
+      - attach_workspace:
+          at: ~/OCloud/<< parameters.workspace >>
+      - run:
+          working_directory: << parameters.workspace >>
+          name: Run linter
+          command: yarn lint
+      - store_artifacts:
+          path: << parameters.workspace >>/coverage
+
+  yarn-audit:
+    parameters:
+      workspace:
+        type: string
+    steps:
+      - checkout_merge
+      # yarn-audit is started with a cron.
+      # As such we cannot get the frontend dependencies from the workspace like we do with the other jobs. We need to re-install them.
+      - run:
+          working_directory: << parameters.workspace >>
+          name: Install front dependencies
+          command: yarn
+      - run:
+          working_directory: << parameters.workspace >>
+          name: Check dependencies
+          command: yarn audit-dependencies
+
+jobs:
+  backend:
+    working_directory: ~/OCloud
+
+    docker:
+      - image: python:3.9
+      - image: postgres:10
+        environment:
+          POSTGRES_PASSWORD: postgres
+
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      DJANGO_SETTINGS_MODULE: OCloud.settings.dev
+
+    steps:
+      - checkout_merge
+
+      - skip/skip_unchanged:
+          paths: backend
+          git_base_branch: origin/main
+
+      - restore_cache:
+          keys:
+            - backend-{{ .Branch }}-{{ checksum "backend/poetry.lock" }}
+            - backend-{{ .Branch }}
+            - backend-main-{{ checksum "backend/poetry.lock" }}
+            - backend-main
+
+      - run:
+          name: Install poetry
+          command: |
+            pip install poetry
+            poetry config virtualenvs.create false
+
+      - run:
+          name: Check pyproject.toml
+          working_directory: backend
+          command: poetry check
+
+      - run:
+          name: Install python dependencies
+          working_directory: backend
+          command: poetry install
+
+      - run:
+          name: Check for vulnerable dependencies
+          working_directory: backend
+          command: |
+            poetry export -f requirements.txt > requirements.txt
+            cat requirements.txt | safety check --full-report \
+            --ignore 38678 # django-celery-results
+
+      - run:
+          name: Check format
+          working_directory: backend
+          command: black --diff --check .
+
+      - run:
+          name: Check code style
+          working_directory: backend
+          command: flake8 .
+
+      - run:
+          name: Check imports order
+          working_directory: backend
+          command: isort --check-only --recursive --diff .
+
+      - run:
+          name: Check for security issues
+          working_directory: backend
+          command: bandit -r . -x ./.venv/
+
+      - run:
+          name: Check Django install
+          working_directory: backend
+          command: ./manage.py check
+
+      - run:
+          name: Check for non backward compatible migrations
+          working_directory: backend
+          command: |
+            #!/usr/bin/env bash
+            set -o pipefail
+            # Compares the diff for migrations created in the current branch to master for forbidden migrations
+            # Dumps the migrations file paths to a file to be fed to the migration linter
+            # TODO debt this feature exists natively in `lintmigrations` but could not get it to work
+            # because of a git option they use
+            (git diff --name-only --diff-filter=ACMRT origin/master | grep -e  "./*/migrations/.*" || true) > changed_migrations.txt
+            # Checks for forbidden migrations and exits with error if they exist
+            python manage.py lintmigrations --include-migrations-from=changed_migrations.txt
+            rm changed_migrations.txt
+
+      - run:
+          name: Check necessary migrations have been created
+          working_directory: backend
+          command: ./manage.py makemigrations --check --dry-run
+
+      - run:
+          name: Migrate database
+          working_directory: backend
+          command: ./manage.py migrate
+
+      - run:
+          name: Collect static files
+          working_directory: backend
+          command: ./manage.py collectstatic
+
+      - run:
+          name: Run tests
+          working_directory: backend
+          command: coverage run manage.py test
+
+      - run:
+          name: Check coverage
+          working_directory: backend
+          command: coverage report
+
+      - save_cache:
+          key: backend-{{ .Branch }}-{{ checksum "backend/poetry.lock" }}
+          paths:
+            - ~/.cache/pip
+
+  yarn-install-front:
+    executor: defaults_typescript
+    working_directory: ~/OCloud
+    steps:
+      - yarn-install:
+          workspace: frontend
+
+  react-tests:
+    executor: defaults_typescript
+    working_directory: ~/OCloud
+    environment:
+      NODE_ENV: test
+    steps:
+      - yarn-tests:
+          workspace: frontend
+
+  react-bundlesize:
+    executor: defaults_typescript
+    working_directory: ~/OCloud
+    environment:
+      NODE_ENV: prod
+    steps:
+      - checkout_merge
+      - skip/skip_unchanged:
+          paths: frontend
+          git_base_branch: origin/main
+      - attach_workspace:
+          at: ~/OCloud/frontend
+      - run:
+          working_directory: frontend
+          name: Check bundle size
+          command: yarn build && ./node_modules/.bin/bundlesize
+      - store_artifacts:
+          path: frontend/coverage
+
+  react-linter:
+    executor: defaults_typescript
+    working_directory: ~/OCloud
+    environment:
+      NODE_ENV: prod
+    steps:
+      - checkout_merge
+      - skip/skip_unchanged:
+          paths: frontend
+          git_base_branch: origin/main
+      - yarn-linter:
+          workspace: frontend
+      - run:
+          working_directory: frontend
+          name: Run css linter
+          command: yarn lint-style
+      - store_artifacts:
+          path: frontend/coverage
+
+  react-audit:
+    executor: defaults_typescript
+    working_directory: ~/OCloud
+    environment:
+      NODE_ENV: prod
+    steps:
+      - yarn-audit:
+          workspace: frontend
+
+workflows:
+  version: 2
+  stack:
+    jobs:
+      - backend
+      - yarn-install-front
+      - react-tests:
+          requires:
+            - yarn-install-front
+      - react-bundlesize:
+          requires:
+            - yarn-install-front
+      - react-linter:
+          requires:
+            - yarn-install-front
+  audit-dependencies:
+    triggers:
+      - schedule:
+          # jobs start at 00h00 every Monday, test made for main
+          cron: "0 0 * * 1"
+          filters:
+            branches:
+              only:
+                - main
+    jobs:
+      - react-audit

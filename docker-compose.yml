@@ -1,0 +1,65 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres:10
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: 'trust'
+
+  broker:
+    image: redis:6
+
+  backend:
+    build: ./backend
+    command: python /code/manage.py rundebugserver 0.0.0.0:80
+    volumes:
+      - ./backend:/code:delegated
+    ports:
+      - "8000:80"
+      - "9000:9000"
+    links:
+      - broker
+      - db
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: 'postgres://postgres@db:5432/postgres'
+      ENVIRONMENT: 'development'
+
+  worker:
+    build: ./backend
+    command: celery worker -A OCloud -l INFO
+    volumes:
+      - ./backend:/code:delegated
+    links:
+      - broker
+      - db
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgres://postgres@db:5432/postgres"
+      ENVIRONMENT: 'development'
+      DJANGO_SETTINGS_MODULE: OCloud.settings.dev
+
+  beat:
+    build: ./backend
+    command: celery beat -A OCloud -l INFO --scheduler OCloud.schedulers:LockedDatabaseScheduler
+    volumes:
+      - ./backend:/code:delegated
+    links:
+      - broker
+      - db
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: "postgres://postgres@db:5432/postgres"
+      ENVIRONMENT: 'development'
+      DJANGO_SETTINGS_MODULE: OCloud.settings.dev
+
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 172.16.72.0/24
