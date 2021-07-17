@@ -7,6 +7,7 @@ import {
   Code,
   DescriptionLine,
   DescriptionList,
+  AvatarLink,
 } from './Home.style';
 import logo from 'assets/logo.png';
 import { Link } from 'react-router-dom';
@@ -33,7 +34,9 @@ const Home: React.FunctionComponent = () => (
         </DescriptionLine>
       </DescriptionList>
     </HowTo>
-    <Link to="/avatar">See Avatar page</Link>
+    <AvatarLink>
+      <Link to="/avatar">See Avatar page</Link>
+    </AvatarLink>
   </HomeContainer>
 );
 
