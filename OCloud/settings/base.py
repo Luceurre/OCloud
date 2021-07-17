@@ -91,9 +91,7 @@ LOGGING = {
         "default": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": os.environ.get(
-                "LOG_PATH", "/var/log/OCloud/django.log"
-            ),
+            "filename": os.environ.get("LOG_PATH", "/var/log/OCloud/django.log"),
         },
         "null": {"class": "logging.NullHandler"},
     },
