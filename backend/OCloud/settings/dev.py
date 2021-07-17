@@ -5,10 +5,10 @@ SECRET_KEY = "925df9719cfb9b3cb8260b1f468e70bdd08a61b7c220837cdf"  # nosec
 DEBUG = True
 INTERNAL_IPS = ["127.0.0.1", "172.16.72.1"]
 
-INSTALLED_APPS = INSTALLED_APPS + ["debug_toolbar", "django_extensions"]
+# INSTALLED_APPS = INSTALLED_APPS + ["debug_toolbar", "django_extensions"]
 ALLOWED_HOSTS = ["*"]
 
-MIDDLEWARE = MIDDLEWARE + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
+# MIDDLEWARE = MIDDLEWARE + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
 # Logging
 LOGGING["handlers"]["default"] = {

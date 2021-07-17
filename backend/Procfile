@@ -1,1 +1,1 @@
-web: gunicorn that_should_crash.wsgi
+web: gunicorn OCloud.wsgi
