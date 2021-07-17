@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
@@ -10,7 +11,7 @@ class BaseModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
+    class Meta(object):
         abstract = True
         get_latest_by = "created_at"
         ordering = ("-created_at",)
@@ -24,7 +25,7 @@ class UserManager(BaseUserManager):
 
     use_in_migrations = True
 
-    def _create_user(self, email, password, **extra_fields):
+    def _create_user(self, email, password, **extra_fields) -> AbstractUser:
         """Create and save a User with the given email and password."""
         if not email:
             raise ValueError("The given email must be set")
@@ -57,12 +58,12 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: List[str] = []
 
     objects = UserManager()
 
     def save(self, *args, **kwargs):
-        "Set username to email when it's empty."
+        """Set username to email when it's empty."""
         if not self.username:
             self.username = self.email
         super().save(*args, **kwargs)
