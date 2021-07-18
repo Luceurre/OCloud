@@ -7,7 +7,7 @@ import requests
 from .base import *
 
 SECRET_KEY = os.environ.get("SECRET_KEY")
-DEBUG = False
+DEBUG = bool(os.environ.get("DEBUG", False))
 
 ALLOWED_HOSTS = [
     # Change me!
