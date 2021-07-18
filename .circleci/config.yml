@@ -229,7 +229,168 @@ commands:
           working_directory: << parameters.workspace >>
           name: Check dependencies
           command: yarn audit-dependencies
+  check-authentication:
+    description: |
+      Verifies the Heroku API key has been added so we can authenticate.
+    parameters:
+      print-whoami:
+        default: false
+        description: Print the result of heroku auth:whoami.
+        type: boolean
+    steps:
+      - run:
+          command: |
+            if [[ $HEROKU_API_KEY == "" ]]; then
+              echo "No Heroku API key set, please set the HEROKU_API_KEY environment variable."
+              echo "This can be found by running the `heroku auth:token` command locally."
+              exit 1
+            else
+              echo "Heroku API key found."
+            <<#parameters.print-whoami>>
+              heroku auth:whoami
+            <</parameters.print-whoami>>
+            fi
+          name: Verify HEROKU_API_KEY is set
+    deploy-via-git:
+      description: |
+        Replace this text with a description for this command. # What will this command do? # Descriptions should be short, simple, and clear.
+      parameters:
+        api-key:
+          default: HEROKU_API_KEY
+          description: The name of the environment variable containing your Heroku API Key.
+          type: env_var_name
+        app-name:
+          default: $HEROKU_APP_NAME
+          description: The name of your Heroku App. For backwards compatibility the literal value `$HEROKU_APP_NAME` is the default, so you can easily use this command by setting an environment variable called HEROKU_APP_NAME
+          type: string
+        branch:
+          default: $CIRCLE_BRANCH
+          description: Deploy the given branch. The default value is your current branch.
+          type: string
+        force:
+          default: false
+          description: Whether or not to force the git push (i.e. `git push -f`). Defaults to false.
+          type: boolean
+        maintenance-mode:
+          default: false
+          description: Use this to automatically enable maintenance mode before pre-deploy steps and have it disabled after post-deploy steps have been run.
+          type: boolean
+        no_output_timeout:
+          default: 10m
+          description: Allows you to specify the no_output_timeout for the `git push` to heroku. Defaults to 10m.
+          type: string
+        tag:
+          default: $CIRCLE_TAG
+          description: Deploy the given tag. The default value is your current tag.
+          type: string
+      steps:
+        - when:
+            condition: << parameters.maintenance-mode >>
+            steps:
+              - run:
+                  command: heroku maintenance:on --app << parameters.app-name >>
+                  name: Turn ON maintenance mode.
+        - run:
+            command: |
+              if << parameters.force >>;then
+                force="-f"
+              fi
 
+              heroku_url="https://heroku:$<< parameters.api-key >>@git.heroku.com/<< parameters.app-name >>.git"
+
+              if [ -n "<< parameters.branch >>" ]; then
+                git push $force $heroku_url << parameters.branch >>:main
+              elif [ -n "<< parameters.tag >>" ]; then
+                git push $force $heroku_url << parameters.tag >>^{}:main
+              else
+                echo "No branch or tag found."
+                exit 1
+              fi
+            name: Deploy branch or tag to Heroku via git push
+            no_output_timeout: << parameters.no_output_timeout >>
+        - when:
+            condition: << parameters.maintenance-mode >>
+            steps:
+              - run:
+                  command: heroku maintenance:off --app << parameters.app-name >>
+                  name: Turn OFF maintenance mode.
+    install:
+      description: |
+        Download and install the Heroku CLI. Will be skipped if the CLI is already installed in the system.
+      steps:
+        - run:
+            command: |
+              if [[ $(command -v heroku) == "" ]]; then
+                curl https://cli-assets.heroku.com/install.sh | sh
+              else
+                echo "Heroku is already installed. No operation was performed."
+              fi
+            name: Install Heroku CLI (If not installed)
+    push-docker-image:
+      description: |
+        Push a Docker image to the Heroku Docker registry.
+      parameters:
+        api-key:
+          default: HEROKU_API_KEY
+          description: The name of the environment variable containing your Heroku API Key.
+          type: env_var_name
+        app-name:
+          default: $HEROKU_APP_NAME
+          description: The name of your Heroku App. For backwards compatibility the literal value `$HEROKU_APP_NAME` is the default, so you can easily use this command by setting an environment variable called HEROKU_APP_NAME
+          type: string
+        no_output_timeout:
+          default: 10m
+          description: Allows you to specify the no_output_timeout for the `git push` to heroku. Defaults to 10m.
+          type: string
+        process-types:
+          default: ""
+          description: Process types.
+          type: string
+        recursive:
+          default: false
+          description: Push all Dockerfiles in the directory to Heroku.
+          type: boolean
+      steps:
+        - run:
+            command: heroku container:login
+            name: Login to Heroku Docker image registry
+        - run:
+            command: |
+              heroku container:push -a <<parameters.app-name>> \
+              <<# parameters.recursive >>--recursive<</ parameters.recursive >> \
+              <<# parameters.process-types>><<parameters.process-types>><</ parameters.process-types>>
+            name: Push Docker image to Heroku
+            no_output_timeout: << parameters.no_output_timeout >>
+    release-docker-image:
+      description: |
+        Release a Docker image from the Heroku Docker registry.
+      parameters:
+        api-key:
+          default: HEROKU_API_KEY
+          description: The name of the environment variable containing your Heroku API Key.
+          type: env_var_name
+        app-name:
+          default: $HEROKU_APP_NAME
+          description: The name of your Heroku App. For backwards compatibility the literal value `$HEROKU_APP_NAME` is the default, so you can easily use this command by setting an environment variable called HEROKU_APP_NAME
+          type: string
+        no_output_timeout:
+          default: 10m
+          description: Allows you to specify the no_output_timeout for the `git push` to heroku. Defaults to 10m.
+          type: string
+        process-types:
+          default: web
+          description: Process types.
+          type: string
+      steps:
+        - run:
+            command: heroku container:login
+            name: Login to Heroku Docker image registry
+        - run:
+            command: |
+              heroku container:release -a <<parameters.app-name>> \
+              <<parameters.process-types>>
+            name: Release Docker image to Heroku
+            no_output_timeout: << parameters.no_output_timeout >>
 jobs:
   backend:
     working_directory: ~/OCloud
@@ -415,6 +576,94 @@ jobs:
       - yarn-audit:
           workspace: frontend
 
+  deploy-via-git:
+    description: |
+      Quickly and easily take the changes to this branch or tag and deploy them to Heroku automatically with this job.
+    executor: default
+    parameters:
+      api-key:
+        default: HEROKU_API_KEY
+        description: The name of the environment variable containing your Heroku API Key.
+        type: env_var_name
+      app-name:
+        default: $HEROKU_APP_NAME
+        description: The name of your Heroku App. For backwards compatibility the literal value `$HEROKU_APP_NAME` is the default, so you can easily use this command by setting an environment variable called HEROKU_APP_NAME
+        type: string
+      branch:
+        default: $CIRCLE_BRANCH
+        description: Deploy the given branch. The default value is your current branch.
+        type: string
+      force:
+        default: false
+        description: Whether or not to force the git push (i.e. `git push -f`). Defaults to false.
+        type: boolean
+      maintenance-mode:
+        default: false
+        description: Use this to automatically enable mantainance mode before pre-deploy steps and have it disabled after post-deploy steps have been run.
+        type: boolean
+      no_output_timeout:
+        default: 10m
+        description: Allows you to specify the no_output_timeout for the `git push` to heroku. Defaults to 10m.
+        type: string
+      post-deploy:
+        default: [ ]
+        description: A list of post-deploy steps that are run after deployment. This would be an ideal place to scale any processes back up.
+        type: steps
+      pre-deploy:
+        default: [ ]
+        description: A list of pre-deploy steps that are run before deployment. This would be an ideal place to scale any processes down.
+        type: steps
+      tag:
+        default: $CIRCLE_TAG
+        description: Deploy the given tag. The default value is your current tag.
+        type: string
+    steps:
+      - install
+      - check-authentication
+      - checkout
+      - steps: << parameters.pre-deploy >>
+      - deploy-via-git:
+          api-key: << parameters.api-key >>
+          app-name: << parameters.app-name >>
+          branch: << parameters.branch >>
+          force: << parameters.force >>
+          maintenance-mode: << parameters.maintenance-mode >>
+          no_output_timeout: << parameters.no_output_timeout >>
+          tag: << parameters.tag >>
+      - steps: << parameters.post-deploy >>
+    push-docker-image:
+      description: |
+        Quickly and easily take the changes to this branch and deploy them to Heroku automatically with this job.
+      executor: default
+      parameters:
+        app-name:
+          default: $HEROKU_APP_NAME
+          description: The name of your Heroku App. For backwards compatibility the literal value `$HEROKU_APP_NAME` is the default, so you can easily use this command by setting an environment variable called HEROKU_APP_NAME
+          type: string
+        maintenance-mode:
+          default: false
+          description: Use this to automatically enable mantainance mode before pre-deploy steps and have it disabled after post-deploy steps have been run.
+          type: boolean
+        post-deploy:
+          default: [ ]
+          description: A list of post-deploy steps that are run after deployment. This would be an ideal place to scale any processes back up.
+          type: steps
+        pre-deploy:
+          default: [ ]
+          description: A list of pre-deploy steps that are run before deployment. This would be an ideal place to scale any processes down.
+          type: steps
+      steps:
+        - install
+        - check-authentication
+        - checkout
+        - steps: << parameters.pre-deploy >>
+        - push-docker-image:
+            app-name: << parameters.app-name >>
+            process-types: web
+        - release-docker-image:
+            app-name: << parameters.app-name >>
+            process-types: web
+        - steps: << parameters.post-deploy >>
 workflows:
   version: 2
   stack:
@@ -430,6 +679,15 @@ workflows:
       - react-linter:
           requires:
             - yarn-install-front
+      - hold:
+          type: approval
+          requires:
+            - backend
+            - react-bundlesize
+            - react-linter
+      - deploy:
+          requires:
+            - hold
   audit-dependencies:
     triggers:
       - schedule:
