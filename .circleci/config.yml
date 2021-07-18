@@ -246,6 +246,7 @@ jobs:
       - heroku/install
       - heroku/deploy-via-git:
           app-name: ocloud-frontend
+          force: true
   backend:
     working_directory: ~/OCloud
 
