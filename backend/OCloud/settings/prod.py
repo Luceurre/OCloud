@@ -52,9 +52,7 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": os.environ.get("REDIS_URL"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",},
     }
 }
 
@@ -72,6 +70,7 @@ if "SENTRY_DSN" in os.environ:
         environment=os.environ.get("ENVIRONMENT"),
         release=os.environ.get("VERSION"),
     )
+
 
 # Celery config
 BROKER_URL = os.environ["REDIS_URL"]

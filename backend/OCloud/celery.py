@@ -14,7 +14,8 @@ app = Celery("OCloud")
 #   should have a `CELERY_` prefix.
 # app.config_from_object("django.conf:settings")
 app.conf.update(
-    BROKER_URL=os.environ["REDIS_URL"], CELERY_RESULT_BACKEND=os.environ["REDIS_URL"]
+    BROKER_URL=os.environ.get("REDIS_URL", ""),
+    CELERY_RESULT_BACKEND=os.environ.get("REDIS_URL", ""),
 )
 
 # Load task modules from all registered Django app configs.
