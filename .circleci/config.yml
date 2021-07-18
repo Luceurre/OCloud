@@ -9,6 +9,7 @@ orbs:
   aws-cli: circleci/aws-cli@2.0.0
   aws-ecr: circleci/aws-ecr@6.15
   aws-eb: circleci/aws-elastic-beanstalk@1.0.2
+  heroku: circleci/heroku@1.2.6
   skip: theodo/skip@0.0.4
   sentry:
     commands:
@@ -229,8 +230,18 @@ commands:
           working_directory: << parameters.workspace >>
           name: Check dependencies
           command: yarn audit-dependencies
-
 jobs:
+  deploy-staging-frontend:
+    executor: heroku/default
+    steps:
+      - checkout_merge
+      - run:
+          name: Create subtree
+          command: |
+            git subtree split --prefix frontend -b staging-frontend
+            git checkout staging-frontend
+      - heroku/install
+      - heroku/deploy-via-git
   backend:
     working_directory: ~/OCloud
 
@@ -430,6 +441,15 @@ workflows:
       - react-linter:
           requires:
             - yarn-install-front
+      - hold:
+          type: approval
+          requires:
+            - backend
+            - react-bundlesize
+            - react-linter
+      - deploy:
+          requires:
+            - hold
   audit-dependencies:
     triggers:
       - schedule:
