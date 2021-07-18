@@ -14,7 +14,7 @@ app = Celery("OCloud")
 #   should have a `CELERY_` prefix.
 # app.config_from_object("django.conf:settings")
 app.conf.update(
-    BROKER_URL=os.environ["REDIS_URL"], CELERY_RESULT_BACKEND=os.environ["REDIS_URL"]
+    BROKER_URL=settings.BROKER_URL, CELERY_RESULT_BACKEND=settings.CELERY_RESULT_BACKEND
 )
 
 # Load task modules from all registered Django app configs.
@@ -24,10 +24,3 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 @app.task(bind=True)
 def debug_task(self):
     print(f"Request: {self.request!r}")
-
-
-@app.task()
-def add(x, y):
-    print(settings.BROKER_URL)
-    print(f"{x} + {y} = { x + y }")
-    return x + y
