@@ -73,11 +73,7 @@ if "SENTRY_DSN" in os.environ:
     )
 
 # Celery config
-CELERY_BROKER_URL = os.environ["REDIS_URL"]
+BROKER_URL = os.environ["REDIS_URL"]
 CELERY_RESULT_BACKEND = os.environ["REDIS_URL"]
-CELERY_BROKER_TRANSPORT_OPTIONS = {
-    "region": "",
-    "queue_name_prefix": f"{os.environ.get('ENVIRONMENT')}-",
-}
 
 django_heroku.settings(locals())
