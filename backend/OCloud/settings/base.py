@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_migration_linter",
     # Our apps
-    "front",
     "core",
 ]
 

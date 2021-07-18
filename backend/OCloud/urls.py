@@ -28,7 +28,6 @@ urlpatterns = [
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
     path("health", health, name="health"),
-    path("", include("front.urls")),  # Keep this line last
 ]
 
 # if settings.DEBUG:
