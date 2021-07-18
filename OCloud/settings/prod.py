@@ -1,6 +1,7 @@
 # flake8: noqa
 import os
 
+import django_heroku
 import requests
 
 from .base import *
@@ -74,3 +75,5 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
     "region": "",
     "queue_name_prefix": f"{os.environ.get('ENVIRONMENT')}-",
 }
+
+django_heroku.settings(locals())
