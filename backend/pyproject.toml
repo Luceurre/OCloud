@@ -31,6 +31,8 @@ django-migration-linter = "^2.4.0"
 django-add-default-value = "^0.5.0"
 django-deprecate-fields = "^0.1.0"
 pylint = "^2.9.3"
+gunicorn = "^20.1.0"
+django-heroku = "^0.3.1"
 
 [tool.poetry.dev-dependencies]
 ptvsd = "^4.3.2"
