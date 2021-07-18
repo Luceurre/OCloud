@@ -11,7 +11,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     # Change me!
-    "o-cloud.com"
+    "ocloud-backend.herokuapp.com",
+    "o-cloud.com",
 ]
 
 if "ALLOWED_HOST" in os.environ:
@@ -77,3 +78,5 @@ BROKER_URL = os.environ["REDIS_URL"]
 CELERY_RESULT_BACKEND = os.environ["REDIS_URL"]
 
 django_heroku.settings(locals())
+
+CORS_ALLOW_ALL_ORIGINS = True
