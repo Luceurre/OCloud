@@ -49,8 +49,11 @@ LOGGING["formatters"] = {
 # Caching
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "application_cache",
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.environ.get("REDIS_URL"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
     }
 }
 
@@ -70,7 +73,8 @@ if "SENTRY_DSN" in os.environ:
     )
 
 # Celery config
-CELERY_BROKER_URL = "sqs://"
+CELERY_BROKER_URL = os.environ["REDIS_URL"]
+CELERY_RESULT_BACKEND = os.environ["REDIS_URL"]
 CELERY_BROKER_TRANSPORT_OPTIONS = {
     "region": "",
     "queue_name_prefix": f"{os.environ.get('ENVIRONMENT')}-",
