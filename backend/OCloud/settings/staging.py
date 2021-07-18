@@ -9,6 +9,7 @@ from .base import *
 SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = bool(os.environ.get("DEBUG", False))
 
+
 ALLOWED_HOSTS = [
     # Change me!
     "ocloud-backend.herokuapp.com",
@@ -52,9 +53,7 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": os.environ.get("REDIS_URL"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient",},
     }
 }
 
