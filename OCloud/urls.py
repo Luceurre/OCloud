@@ -31,12 +31,12 @@ urlpatterns = [
     path("", include("front.urls")),  # Keep this line last
 ]
 
-if settings.DEBUG:
-    from django.conf.urls.static import static
-    import debug_toolbar
-
-    urlpatterns = (
-        [path("__debug__/", include(debug_toolbar.urls))]
-        + static(settings.MEDIA_URL_PATH, document_root=settings.MEDIA_ROOT)
-        + urlpatterns
-    )
+# if settings.DEBUG:
+#     from django.conf.urls.static import static
+#     import debug_toolbar
+#
+#     urlpatterns = (
+#         [path("__debug__/", include(debug_toolbar.urls))]
+#         + static(settings.MEDIA_URL_PATH, document_root=settings.MEDIA_ROOT)
+#         + urlpatterns
+#     )
