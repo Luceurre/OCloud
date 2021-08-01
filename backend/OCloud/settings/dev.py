@@ -43,9 +43,3 @@ CORS_ALLOWED_ORIGINS = [
 
 # Migration linter (`makemigrations` becomes `makemigrations --lint` by default)
 MIGRATION_LINTER_OVERRIDE_MAKEMIGRATIONS = True
-
-DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///{}".format(os.path.join(BASE_DIR, "db/OCloud.sqlite3"))
-    )
-}
