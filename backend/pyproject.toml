@@ -34,6 +34,7 @@ gunicorn = "^20.1.0"
 django-heroku = "^0.3.1"
 django-redis = "^5.0.0"
 pycryptodome = "^3.10.1"
+pycryptodomex = "^3.10.1"
 
 [tool.poetry.dev-dependencies]
 ptvsd = "^4.3.2"
