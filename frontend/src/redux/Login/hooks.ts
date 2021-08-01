@@ -5,15 +5,17 @@ import { useDispatch } from 'react-redux';
 import * as Sentry from '@sentry/browser';
 import jwt_decode from 'jwt-decode';
 import { FormValues } from 'pages/Login/service';
-import { userLoggedIn } from './slice';
+import { userLoggedIn, userLoggedOut } from './slice';
 import { useTypedAsyncFn } from 'redux/useTypedAsyncFn';
 import { AsyncFnReturn } from 'react-use/lib/useAsyncFn';
 
 export const useLogout = (): AsyncFnReturn<(...args: Record<string, never>[]) => Promise<void>> => {
+  const dispatch = useDispatch();
   const { push } = useHistory();
 
   return useTypedAsyncFn<Record<string, never>>(async () => {
     await client.logout();
+    dispatch(userLoggedOut());
     push(PATHS.LOGIN);
   }, [push]);
 };
@@ -23,7 +25,7 @@ export const useLogin = (): AsyncFnReturn<(
     values: FormValues;
   }[]
 ) => Promise<void>> => {
-  const { push } = useHistory();
+  const { goBack } = useHistory();
   const dispatch = useDispatch();
 
   return useTypedAsyncFn<{ values: FormValues }>(
@@ -37,11 +39,11 @@ export const useLogin = (): AsyncFnReturn<(
             ...jwt_decode(token),
           });
         });
-        push(PATHS.HOME);
+        goBack();
       } else {
         throw new Error('No token in login response body');
       }
     },
-    [push, dispatch],
+    [dispatch],
   );
 };

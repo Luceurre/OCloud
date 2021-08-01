@@ -2,9 +2,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 export type LoginState = Readonly<{
   token: string | null;
+  isLoggedIn: boolean;
 }>;
 
-const initialState: LoginState = { token: null };
+const initialState: LoginState = { token: null, isLoggedIn: false };
 
 const avatarSlice = createSlice({
   name: 'Login',
@@ -12,6 +13,7 @@ const avatarSlice = createSlice({
   reducers: {
     userLoggedIn: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
+      state.isLoggedIn = true;
     },
     userLoggedOut: () => initialState,
   },
