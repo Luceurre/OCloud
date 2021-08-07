@@ -1,6 +1,7 @@
 import jwt_decode from 'jwt-decode';
 import request from 'superagent';
 import { ApiResponse } from 'services/networking/types';
+import { method } from 'lodash';
 
 const backendBaseUrl = process.env.REACT_APP_API_BASE_URL ?? '';
 
@@ -107,6 +108,10 @@ class Client {
 
   put<ReturnType>(endpoint: string, data: Record<string, unknown>) {
     return this.request<ReturnType>('put', endpoint, data);
+  }
+
+  delete<ReturnType>(endpoint: string) {
+    return this.request<ReturnType>('delete', endpoint);
   }
 
   async login(data: Record<string, unknown>) {
