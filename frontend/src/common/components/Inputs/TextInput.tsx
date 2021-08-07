@@ -1,13 +1,9 @@
 import React from 'react';
-import { FieldInputProps, useField } from 'formik';
+import { withFormikInput } from 'common/components/Inputs/HOC/withFormikInput';
 
-type TextInputProps<Value> = FieldInputProps<Value> & {
-  className?: string;
-};
-
-const TextInput = (props: TextInputProps<string>): JSX.Element => {
-  const [field] = useField<string>(props);
-  return <input {...field} {...props} />;
-};
-
+interface TextInputProps {
+  type?: string;
+  name?: string;
+}
+const TextInput = withFormikInput((props: TextInputProps) => <input {...props} />);
 export default TextInput;
