@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     # Our apps
     "core",
     "PublicKey",
+    "Application",
 ]
 
 AUTHENTICATION_BACKENDS = [
