@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from AuthKey.models.PublicKey import PublicKey
+from PublicKey.models.PublicKey import PublicKey
 
 
 class PublicKeySerializer(serializers.ModelSerializer):

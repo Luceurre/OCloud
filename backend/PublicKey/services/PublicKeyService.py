@@ -1,4 +1,4 @@
-from AuthKey.models.PublicKey import PublicKey
+from PublicKey.models.PublicKey import PublicKey
 from django.apps import apps
 
 

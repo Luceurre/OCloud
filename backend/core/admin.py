@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from AuthKey.models.PublicKey import PublicKey
+from PublicKey.models.PublicKey import PublicKey
 from core.models import User
 
 

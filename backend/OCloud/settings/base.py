@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     "django_migration_linter",
     # Our apps
     "core",
-    "AuthKey",
+    "PublicKey",
 ]
 
 AUTHENTICATION_BACKENDS = [

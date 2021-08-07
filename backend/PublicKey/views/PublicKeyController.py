@@ -1,9 +1,9 @@
 from rest_framework import generics, permissions, response, status
 
-from AuthKey.models.PublicKey import PublicKey
-from AuthKey.permissions.IsAdminOrOwner import IsAdminOrOwner
-from AuthKey.serializers.PublicKeySerializer import PublicKeySerializer
-from AuthKey.services.PublicKeyService import can_user_create_new_public_key
+from PublicKey.models.PublicKey import PublicKey
+from PublicKey.permissions.IsAdminOrOwner import IsAdminOrOwner
+from PublicKey.serializers.PublicKeySerializer import PublicKeySerializer
+from PublicKey.services.PublicKeyService import can_user_create_new_public_key
 
 
 class ListCreatePublicKeyController(generics.ListCreateAPIView):

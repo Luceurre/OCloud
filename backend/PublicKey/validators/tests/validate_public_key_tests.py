@@ -1,7 +1,7 @@
 from unittest import TestCase
 from django.core.exceptions import ValidationError
 
-from AuthKey.validators.validate_public_key import validate_public_key
+from PublicKey.validators.validate_public_key import validate_public_key
 
 
 class ValidatePublicKetTest(TestCase):

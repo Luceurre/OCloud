@@ -1,7 +1,7 @@
 from django.urls import path
 
 # Register your urls here.
-from AuthKey.views.PublicKeyController import ListCreatePublicKeyController, UpdateDestroyPublicKeyController
+from PublicKey.views.PublicKeyController import ListCreatePublicKeyController, UpdateDestroyPublicKeyController
 
 urlpatterns = [
     path('', ListCreatePublicKeyController.as_view()),

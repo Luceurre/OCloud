@@ -1,6 +1,6 @@
 from django.db import models
 
-from AuthKey.validators.validate_public_key import validate_public_key
+from PublicKey.validators.validate_public_key import validate_public_key
 from core.models import User
 
 
