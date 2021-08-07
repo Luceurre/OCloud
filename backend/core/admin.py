@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
+from AuthKey.models.PublicKey import PublicKey
 from core.models import User
 
 
@@ -11,3 +12,4 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(PublicKey)

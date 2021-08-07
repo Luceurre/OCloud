@@ -27,6 +27,7 @@ urlpatterns = [
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
     path("health", health, name="health"),
+    path('public_keys', include('AuthKey.urls'))
 ]
 
 # if settings.DEBUG:
