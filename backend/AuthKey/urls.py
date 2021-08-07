@@ -1,10 +1,11 @@
 from django.urls import path
 
 # Register your urls here.
-from AuthKey.views.PublicKeyController import PublicKeyController
+from AuthKey.views.PublicKeyController import ListCreatePublicKeyController, UpdateDestroyPublicKeyController
 
 urlpatterns = [
-    path('', PublicKeyController.as_view())
+    path('', ListCreatePublicKeyController.as_view()),
+    path('/<int:pk>/', UpdateDestroyPublicKeyController.as_view())
 ]
 
 app_name = ""
