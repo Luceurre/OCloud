@@ -27,7 +27,7 @@ const Header: React.FC = () => {
         </Link>
       )}
       {!isUserLoggedIn && pathname !== PATHS.LOGIN && (
-        <Link as={RouterLink} to={PATHS.LOGIN}>
+        <Link to={PATHS.LOGIN}>
           <FormattedMessage id="header.login" />
         </Link>
       )}
