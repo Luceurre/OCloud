@@ -6,36 +6,34 @@ import {
   StyledExpirationDate,
   StyledName,
 } from './PublicKeyCard.style';
-import { Form, Formik } from 'formik';
+import { Form, Formik, FormikHelpers } from 'formik';
 import TextInput from 'common/components/Inputs/TextInput';
 import { Button } from 'common/components/UI/Button';
 import TextAreaInput from 'common/components/Inputs/TextAreaInput';
+import { updatePublicKey } from 'pages/PublicKeys/services/updatePublicKey';
 
 interface PublicKeyCardProps {
   publicKey: PublicKey;
 }
 
-const PublicKeyCard = (props: PublicKeyCardProps): JSX.Element => {
+const PublicKeyCard = ({ publicKey }: PublicKeyCardProps): JSX.Element => {
   const [editMode, setEditMode] = useState(false);
 
-  const onCopyButtonClicked = async () => {
+  const handleSubmit = async (values: PublicKey, formikHelpers: FormikHelpers<PublicKey>) => {
     try {
-      await navigator.clipboard.writeText(props.publicKey.value);
-    } catch (e) {
-      console.log(e);
+      formikHelpers.setValues(await updatePublicKey(values));
+    } catch (updateErrors) {
+      formikHelpers.setStatus(updateErrors);
+    } finally {
+      formikHelpers.setSubmitting(false);
     }
-  };
-
-  const onEditClicked = () => setEditMode(true);
-  const onSaveButtonClicked = (values: PublicKey) => {
-    setEditMode(false);
   };
 
   return (
     <StyledCard>
       <Formik
-        initialValues={props.publicKey}
-        onSubmit={onSaveButtonClicked}
+        initialValues={publicKey}
+        onSubmit={handleSubmit}
         validationSchema={publicKeySchema}
         validateOnBlur={false}
         validateOnChange={false}
@@ -51,8 +49,15 @@ const PublicKeyCard = (props: PublicKeyCardProps): JSX.Element => {
             <Button type="submit">Save</Button>
           ) : (
             <>
-              <Button onClick={onCopyButtonClicked}>Copy</Button>
-              <Button onClick={onEditClicked}>Edit</Button>
+              <Button
+                onClick={async () => navigator.clipboard.writeText(publicKey.value)}
+                type="submit"
+              >
+                Copy
+              </Button>
+              <Button onClick={() => setEditMode(true)} type="submit">
+                Edit
+              </Button>
             </>
           )}
           <StyledExpirationDate>

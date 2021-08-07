@@ -105,8 +105,8 @@ class Client {
     return this.request<ReturnType>('post', endpoint, data);
   }
 
-  put(endpoint: string, data: Record<string, unknown>) {
-    return this.request('put', endpoint, data);
+  put<ReturnType>(endpoint: string, data: Record<string, unknown>) {
+    return this.request<ReturnType>('put', endpoint, data);
   }
 
   async login(data: Record<string, unknown>) {
