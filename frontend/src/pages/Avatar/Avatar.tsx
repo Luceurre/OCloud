@@ -39,11 +39,7 @@ const Avatar: React.FC = () => {
     <Container>
       <Content onSubmit={fetchUser} aria-label="form">
         <FormattedMessage id="page.back">
-          {text => (
-            <HomeLink as={RouterLink} to={PATHS.HOME}>
-              &lt; {text}
-            </HomeLink>
-          )}
+          {text => <HomeLink to={PATHS.HOME}>&lt; {text}</HomeLink>}
         </FormattedMessage>
         <FormattedMessage id="page.api-to-translate-example">
           {text => <Message>{text}</Message>}
