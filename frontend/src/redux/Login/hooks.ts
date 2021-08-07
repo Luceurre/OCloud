@@ -14,9 +14,12 @@ export const useLogout = (): AsyncFnReturn<(...args: Record<string, never>[]) =>
   const { push } = useHistory();
 
   return useTypedAsyncFn<Record<string, never>>(async () => {
-    await client.logout();
-    dispatch(userLoggedOut());
-    push(PATHS.LOGIN);
+    try {
+      await client.logout();
+    } finally {
+      dispatch(userLoggedOut());
+      push(PATHS.LOGIN);
+    }
   }, [push]);
 };
 

@@ -3,6 +3,7 @@ import { useDispatch } from 'react-redux';
 import { updateUser } from './slice';
 import { useTypedAsyncFn } from 'redux/useTypedAsyncFn';
 import { AsyncFnReturn } from 'react-use/lib/useAsyncFn';
+import { User } from 'redux/Avatar/types';
 
 export const useFetchUser = (): AsyncFnReturn<(
   ...args: {
@@ -13,7 +14,9 @@ export const useFetchUser = (): AsyncFnReturn<(
 
   return useTypedAsyncFn<{ username: string }>(
     async ({ username }) => {
-      const user = await githubApiClient.get(`https://api.github.com/users/${username}`);
+      const { body: user } = await githubApiClient.get<User>(
+        `https://api.github.com/users/${username}`,
+      );
       dispatch(updateUser(user));
     },
     [dispatch],

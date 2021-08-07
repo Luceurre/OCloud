@@ -1,5 +1,6 @@
 import jwt_decode from 'jwt-decode';
 import request from 'superagent';
+import { ApiResponse } from 'services/networking/types';
 
 const backendBaseUrl = process.env.REACT_APP_API_BASE_URL ?? '';
 
@@ -33,12 +34,12 @@ class Client {
     }
   }
 
-  async request(
+  async request<ReturnType>(
     method: Method,
     endpoint: string,
     data: Record<string, unknown> | null = null,
     checkToken = true,
-  ) {
+  ): Promise<ApiResponse<ReturnType>> {
     if (this.withCredentials) {
       // Checking token validity, refreshing it if necessary.
       if (checkToken) await this.checkToken();
@@ -56,8 +57,7 @@ class Client {
       promise = promise.send(data);
     }
 
-    const { body } = await promise;
-    return body;
+    return promise;
   }
 
   getToken() {
@@ -78,7 +78,14 @@ class Client {
     // There was no token to begin with, nothing to check.
     if (token === null) return;
 
-    const parsedToken = jwt_decode<AccessToken>(token);
+    let parsedToken;
+    try {
+      parsedToken = jwt_decode<AccessToken>(token);
+    } catch {
+      this.updateToken('');
+      return;
+    }
+
     if (tokenHasExpired(parsedToken)) {
       try {
         await this.refreshToken();
@@ -90,12 +97,12 @@ class Client {
     }
   }
 
-  get(endpoint: string) {
-    return this.request('get', endpoint);
+  get<ReturnType>(endpoint: string) {
+    return this.request<ReturnType>('get', endpoint);
   }
 
-  post(endpoint: string, data: Record<string, unknown>) {
-    return this.request('post', endpoint, data);
+  post<ReturnType>(endpoint: string, data: Record<string, unknown>) {
+    return this.request<ReturnType>('post', endpoint, data);
   }
 
   put(endpoint: string, data: Record<string, unknown>) {
@@ -103,20 +110,23 @@ class Client {
   }
 
   async login(data: Record<string, unknown>) {
-    const result = await this.post('/auth/jwt/create', data);
-    const token: string | undefined = result.token ?? result.access;
+    const {
+      body: { access: fetchedToken },
+    } = await this.post<string>('/auth/jwt/create', data);
+    const token: string = fetchedToken;
     if (token !== undefined) this.updateToken(token);
     return token;
   }
 
   async logout() {
-    const result = await this.post('/auth/jwt/logout', {});
-    return result;
+    return this.post('/auth/jwt/logout', {});
   }
 
   async refreshToken() {
-    const { access } = await this.request('post', '/auth/jwt/refresh', {}, false);
-    this.updateToken(access);
+    const {
+      body: { access: refreshToken },
+    } = await this.request<string>('post', '/auth/jwt/refresh', {}, false);
+    this.updateToken(refreshToken);
   }
 }
 
