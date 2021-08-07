@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 
 export const publicKeySchema = yup.object({
-  id: yup.string().required(),
+  id: yup.number().required(),
   name: yup
     .string()
     .trim()
@@ -13,6 +13,7 @@ export const publicKeySchema = yup.object({
     .trim()
     .ensure()
     .required(),
+  algorithm: yup.string(),
   expirationDate: yup.date().required(),
 });
 

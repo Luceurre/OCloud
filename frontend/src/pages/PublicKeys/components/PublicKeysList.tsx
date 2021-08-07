@@ -5,13 +5,18 @@ import PublicKeyCard from 'pages/PublicKeys/components/PublicKeyCard';
 
 interface PublicKeyListProps {
   publicKeys: PublicKey[];
+  onDeletePublicKey: (publicKey: PublicKey) => void;
 }
 
-const PublicKeysList = ({ publicKeys }: PublicKeyListProps): JSX.Element => {
+const PublicKeysList = ({ publicKeys, onDeletePublicKey }: PublicKeyListProps): JSX.Element => {
   return (
     <Container>
       {publicKeys.map(publicKey => (
-        <PublicKeyCard publicKey={publicKey} key={`public-key-${publicKey.id}`} />
+        <PublicKeyCard
+          publicKey={publicKey}
+          key={`public-key-${publicKey.id}`}
+          onDeletePublicKey={onDeletePublicKey}
+        />
       ))}
     </Container>
   );

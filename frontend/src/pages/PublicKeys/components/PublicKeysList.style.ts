@@ -1,5 +1,5 @@
 import styled from 'styled-components';
 
 export const Container = styled.main.attrs({
-  className: 'flex flex-col',
+  className: 'flex flex-col gap-4',
 })``;

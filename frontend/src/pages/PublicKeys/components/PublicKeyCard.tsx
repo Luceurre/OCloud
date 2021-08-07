@@ -11,17 +11,20 @@ import TextInput from 'common/components/Inputs/TextInput';
 import { Button } from 'common/components/UI/Button';
 import TextAreaInput from 'common/components/Inputs/TextAreaInput';
 import { updatePublicKey } from 'pages/PublicKeys/services/updatePublicKey';
+import { deletePublicKey } from 'pages/PublicKeys/services/deletePublicKey';
 
 interface PublicKeyCardProps {
   publicKey: PublicKey;
+  onDeletePublicKey: (publicKey: PublicKey) => void;
 }
 
-const PublicKeyCard = ({ publicKey }: PublicKeyCardProps): JSX.Element => {
+const PublicKeyCard = ({ publicKey, onDeletePublicKey }: PublicKeyCardProps): JSX.Element => {
   const [editMode, setEditMode] = useState(false);
 
   const handleSubmit = async (values: PublicKey, formikHelpers: FormikHelpers<PublicKey>) => {
     try {
       formikHelpers.setValues(await updatePublicKey(values));
+      setEditMode(false);
     } catch (updateErrors) {
       formikHelpers.setStatus(updateErrors);
     } finally {
@@ -46,7 +49,17 @@ const PublicKeyCard = ({ publicKey }: PublicKeyCardProps): JSX.Element => {
             <TextAreaInput name="value" editMode={editMode} />
           </StyledPublicKey>
           {editMode ? (
-            <Button type="submit">Save</Button>
+            <>
+              <Button type="submit">Save</Button>
+              <Button
+                type="button"
+                onClick={async () =>
+                  deletePublicKey(publicKey).then(() => onDeletePublicKey(publicKey))
+                }
+              >
+                Delete
+              </Button>
+            </>
           ) : (
             <>
               <Button
