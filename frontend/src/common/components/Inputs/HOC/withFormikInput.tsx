@@ -1,18 +1,19 @@
 import React from 'react';
-import { useField } from 'formik';
+import { FieldInputProps, useField } from 'formik';
 
-export const withFormikInput = <InputProps extends { name?: string }>(
-  InputComponent: React.ComponentType<Omit<InputProps, 'editMode'>>,
-) => {
+export function withFormikInput<
+  InputProps extends { name?: string } & Partial<FieldInputProps<T>>,
+  T extends string | number | readonly string[]
+>(InputComponent: React.ComponentType<InputProps>) {
   const FormikInput = ({
     editMode,
     ...props
   }: InputProps & { name: string; editMode?: boolean }): JSX.Element => {
-    const [field] = useField(props);
+    const [field] = useField<T>(props);
     if (!(editMode ?? false)) return <>{field.value}</>;
-    return <InputComponent {...field} {...props} />;
+    return <InputComponent {...(field as InputProps)} {...props} />;
   };
 
   FormikInput.displayName = 'FormikInput';
   return FormikInput;
-};
+}
