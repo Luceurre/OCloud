@@ -5,7 +5,7 @@ from PublicKey.views.PublicKeyController import ListCreatePublicKeyController, U
 
 urlpatterns = [
     path('', ListCreatePublicKeyController.as_view()),
-    path('/<int:pk>/', UpdateDestroyPublicKeyController.as_view())
+    path('<int:pk>/', UpdateDestroyPublicKeyController.as_view())
 ]
 
 app_name = ""

@@ -36,6 +36,7 @@ django-redis = "^5.0.0"
 pycryptodome = "^3.10.1"
 pycryptodomex = "^3.10.1"
 djangorestframework-camel-case = "^1.2.0"
+docker = "^5.0.0"
 
 [tool.poetry.dev-dependencies]
 ptvsd = "^4.3.2"

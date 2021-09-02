@@ -16,6 +16,7 @@ services:
     command: python /code/manage.py rundebugserver 0.0.0.0:80
     volumes:
       - ./backend:/code:delegated
+      - /var/run/docker.sock:/var/run/docker.sock:delegated
     ports:
       - "8000:80"
       - "9000:9000"
